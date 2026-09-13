@@ -4,7 +4,7 @@
   "name": "Icons",
   "version": "1.0.0",
   "author": "Jeffrey Cornillie",
-  "description": "Search, copy, and type Nerd Font icons",
+  "description": "Searchable Nerd Font glyph picker — find an icon and type it straight into whatever you were focused on",
   "kinds": [
     "overlay"
   ],
