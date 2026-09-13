@@ -23,10 +23,9 @@ omarchy plugin remove jeffrey.icons
 
 ## Use
 
-This plugin is an overlay, so it doesn't add itself to the menu or a
-keybinding on its own — wire up whichever entry point suits you.
-
-Add a menu entry (`~/.config/omarchy/extensions/omarchy-menu.jsonc`):
+Enabling the plugin adds an "Icons" entry to the Omarchy menu automatically —
+no manual setup needed. It does this once, by adding a `trigger.icons` row to
+`~/.config/omarchy/extensions/omarchy-menu.jsonc` the first time it loads:
 
 ```jsonc
 "trigger.icons": {
@@ -38,7 +37,12 @@ Add a menu entry (`~/.config/omarchy/extensions/omarchy-menu.jsonc`):
 }
 ```
 
-Or bind a key directly (`~/.config/hypr/bindings.lua`):
+It only does this if that key isn't already there, so hand edits (moving it,
+changing the icon, adding a `when` guard) stick. Delete the block if you don't
+want the menu entry — it won't come back unless you remove the plugin and add
+it again.
+
+Prefer a keybinding instead (`~/.config/hypr/bindings.lua`)?
 
 ```lua
 o.bind(hyper .. "I", "Icons", "omarchy-shell shell toggle jeffrey.icons")

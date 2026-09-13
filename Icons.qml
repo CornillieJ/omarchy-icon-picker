@@ -14,6 +14,8 @@ Item {
   property var shell: null
   property var manifest: null
   readonly property string pluginDir: (manifest && manifest.__sourceDir) || (homePath + "/.config/omarchy/plugins/jeffrey.icons")
+  readonly property string menuTriggerId: (manifest && manifest.id) || "jeffrey.icons"
+  readonly property string menuExtensionPath: homePath + "/.config/omarchy/extensions/omarchy-menu.jsonc"
 
   property bool opened: false
   property string filterText: ""
@@ -60,7 +62,7 @@ Item {
   function dismiss() {
     root.opened = false
     if (root.shell && typeof root.shell.hide === "function")
-      root.shell.hide((root.manifest && root.manifest.id) || "jeffrey.icons")
+      root.shell.hide(root.menuTriggerId)
   }
 
   function toggle() {
@@ -153,11 +155,72 @@ Item {
     Quickshell.execDetached([root.pluginDir + "/insert.sh", icon])
   }
 
+  // Mirrors the shell's own comment/trailing-comma stripping (see
+  // MenuModel.js) so the parse check below sees exactly what the menu itself
+  // will see.
+  function stripJsonc(raw) {
+    return String(raw || "")
+      .replace(/^\s*\/\/[^\n]*(\n|$)/gm, "")
+      .replace(/,(\s*[}\]])/g, "$1")
+  }
+
+  // Adds the "trigger.icons" row from the README to the user's menu
+  // extension file the first time this overlay loads (keepLoaded means
+  // that's as soon as the plugin is enabled), so it shows up without anyone
+  // hand-editing JSONC. No-ops if the key is already there (installed
+  // before, or added by hand) or if the file doesn't round-trip through
+  // JSON.parse before and after the edit, so an enable can never corrupt an
+  // existing menu customization.
+  function installMenuTrigger(raw) {
+    var key = "\"trigger.icons\""
+    if (raw.indexOf(key) !== -1) return
+
+    var trimmed = raw.replace(/\s+$/, "")
+    if (trimmed.charAt(trimmed.length - 1) !== "}") return
+
+    var existing
+    try {
+      existing = JSON.parse(root.stripJsonc(raw))
+    } catch (e) {
+      return
+    }
+    var hasEntries = existing && typeof existing === "object" && Object.keys(existing).length > 0
+
+    var head = trimmed.slice(0, trimmed.length - 1)
+    var block =
+      "  \"trigger.icons\": {\n" +
+      "    \"icon\": \"󰠱\",\n" +
+      "    \"label\": \"Icons\",\n" +
+      "    \"aliases\": [\"icons\", \"icon\", \"glyphs\", \"nerd font\", \"font icons\", \"symbols\"],\n" +
+      "    \"description\": \"Search, copy, and type Nerd Font icons\",\n" +
+      "    \"action\": \"omarchy-shell shell toggle " + root.menuTriggerId + "\"\n" +
+      "  }\n"
+    var newText = head + (hasEntries ? ",\n" : "\n") + block + "}\n"
+
+    var after
+    try {
+      after = JSON.parse(root.stripJsonc(newText))
+    } catch (e) {
+      return
+    }
+    if (!after || !after["trigger.icons"]) return
+
+    menuExtensionFile.setText(newText)
+  }
+
   ListModel { id: displayModel }
 
   FileView {
     path: Qt.resolvedUrl("icons.json")
     onLoaded: root.loadIcons(text())
+  }
+
+  FileView {
+    id: menuExtensionFile
+    path: root.menuExtensionPath
+    preload: true
+    printErrors: false
+    onLoaded: root.installMenuTrigger(text())
   }
   PanelWindow {
     id: panel
