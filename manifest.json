@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "jeffrey.icons",
+  "name": "Icons",
+  "version": "1.0.0",
+  "author": "Jeffrey Cornillie",
+  "description": "Search, copy, and type Nerd Font icons",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Icons.qml"
+  }
+}
