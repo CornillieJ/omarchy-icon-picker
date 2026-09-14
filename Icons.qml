@@ -205,6 +205,10 @@ Item {
     }
     if (!after || !after["trigger.icons"]) return
 
+    // We only ever append a block, so the result can never be shorter than
+    // the input; refuse to write anything that looks like it lost content.
+    if (newText.length < raw.length) return
+
     menuExtensionFile.setText(newText)
   }
 
@@ -220,6 +224,7 @@ Item {
     path: root.menuExtensionPath
     preload: true
     printErrors: false
+    atomicWrites: true
     onLoaded: root.installMenuTrigger(text())
   }
   PanelWindow {
